@@ -34,6 +34,9 @@ package sun.security.provider;
 import java.security.MessageDigestSpi;
 import java.security.DigestException;
 import java.security.ProviderException;
+import java.util.ArrayDeque;
+import java.util.concurrent.locks.ReentrantLock;
+
 
 import static sun.security.provider.ByteArrayAccess.*;
 
@@ -41,7 +44,110 @@ import jdk.crypto.jniprovider.NativeCrypto;
 
 abstract class NativeDigest extends MessageDigestSpi implements Cloneable {
 
+
+    final static protected int numContexts = 4096;
+    static protected long[][] contexts;
+    static protected ArrayDeque<Integer> avStack0 = new ArrayDeque<Integer>(numContexts);
+    static protected ArrayDeque<Integer> avStack1 = new ArrayDeque<Integer>(numContexts);
+    static protected ArrayDeque<Integer> avStack2 = new ArrayDeque<Integer>(numContexts);
+    static protected ArrayDeque<Integer> avStack3 = new ArrayDeque<Integer>(numContexts);
+    static protected ArrayDeque<Integer> avStack4 = new ArrayDeque<Integer>(numContexts);
+    static ReentrantLock lock = new ReentrantLock();
+
+    static {
+            contexts = new long[numContexts][5];
+            for (int i = 0; i < numContexts; i++) {
+                contexts[i][0] = NativeCrypto.DigestCreateContext(0, 0);
+                avStack0.push(i);
+                contexts[i][1] = NativeCrypto.DigestCreateContext(0, 1);
+                avStack1.push(i);
+                contexts[i][2] = NativeCrypto.DigestCreateContext(0, 2);
+                avStack2.push(i);
+                contexts[i][3] = NativeCrypto.DigestCreateContext(0, 3);
+                avStack3.push(i);
+                contexts[i][4] = NativeCrypto.DigestCreateContext(0, 4);
+                avStack4.push(i);
+            }
+    }
+
+    synchronized static long getContext(NativeDigest digest) {
+        ArrayDeque<Integer> avStack;
+        switch (digest.algIndx) {
+            case 0:
+                avStack = avStack0;
+                break;
+            case 1:
+                avStack = avStack1;
+                break; 
+            case 2:
+                avStack = avStack2;
+                break; 
+            case 3:
+                avStack = avStack3;
+                break; 
+            case 4:
+                avStack = avStack4;
+                break; 
+            default:
+                return -1;
+        }
+
+        lock.lock();
+        try{
+            if (avStack.isEmpty()) {
+                digest.ctxIndx = -1;
+                digest.context = NativeCrypto.DigestCreateContext(0, digest.algIndx); 
+            } else {
+                digest.ctxIndx = avStack.pop();
+                digest.context = contexts[digest.ctxIndx][digest.algIndx];
+            }
+        } catch (Exception ex) {
+            System.out.println(ex);
+        } finally {
+            lock.unlock();
+        }
+        return digest.context;
+    }
+
+
+    synchronized static void releaseContext(NativeDigest digest) {
+        if(digest.ctxIndx == -1) {
+           NativeCrypto.DigestDestroyContext(digest.context);
+        } else {
+            ArrayDeque<Integer> avStack;
+            switch (digest.algIndx) {
+                case 0:
+                    avStack = avStack0;
+                    break;
+                case 1:
+                    avStack = avStack1;
+                    break; 
+                case 2:
+                    avStack = avStack2;
+                    break; 
+                case 3:
+                    avStack = avStack3;
+                    break; 
+                case 4:
+                    avStack = avStack4;
+                    break; 
+                default:
+                    return;
+            }
+            lock.lock();
+            try {
+                avStack.push(digest.ctxIndx); 
+            } catch (Exception ex) {
+                System.out.println(ex);
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+
     private long context;
+    private int ctxIndx;
     // one element byte array, temporary storage for update(byte)
     private byte[] oneByte;
     // algorithm name to use in the exception message
@@ -64,7 +170,8 @@ abstract class NativeDigest extends MessageDigestSpi implements Cloneable {
         this.algorithm = algorithm;
         this.digestLength = digestLength;
         this.algIndx = algIndx;
-        this.context = NativeCrypto.DigestCreateContext(0, algIndx);
+        this.context = getContext(this);
+
     }
 
     // return digest length. See JCA doc.
@@ -153,6 +260,11 @@ abstract class NativeDigest extends MessageDigestSpi implements Cloneable {
         NativeDigest copy = (NativeDigest) super.clone();
         copy.context    = NativeCrypto.DigestCreateContext(context, algIndx);
         return copy;
+    }
+
+    @Override
+    public void finalize() {
+        releaseContext(this);
     }
 
 }

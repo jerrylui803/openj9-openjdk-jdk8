@@ -63,6 +63,8 @@ public class NativeCrypto {
                                                          int digestOffset,
                                                          int digestLen);
 
+    public static final native long DigestDestroyContext(long context);
+
     /* Native CBC interfaces */
     public static final native long CBCCreateContext(long nativeBuffer,
                                                      long nativeBuffer2);

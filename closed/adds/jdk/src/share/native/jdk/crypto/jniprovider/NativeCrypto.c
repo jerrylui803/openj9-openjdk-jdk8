@@ -184,6 +184,20 @@ JNIEXPORT jint JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestComputeAnd
     return size;
 }
 
+/*
+ * Class:     jdk_crypto_jniprovider_NativeCrypto
+ * Method:    DigestDestroyContext
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestDestroyContext
+  (JNIEnv *env, jclass thisObj, jlong c){
+
+    OpenSSLMDContext *context = (OpenSSLMDContext*) c;
+
+    EVP_MD_CTX_free(context->ctx);
+    free(context);
+}
+
 /* Create Cipher context
  *
  * Class:     jdk_crypto_jniprovider_NativeCrypto
