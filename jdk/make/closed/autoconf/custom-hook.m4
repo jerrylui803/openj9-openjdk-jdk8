@@ -473,7 +473,8 @@ AC_DEFUN([CONFIGURE_OPENSSL],
         FOUND_OPENSSL=yes
         OPENSSL_CFLAGS="-I${OPENSSL_DIR}/include"
         OPENSSL_LIBS="-L${OPENSSL_DIR} -lssl -lcrypto"
-        if test -s $OPENSSL_DIR/${LIBRARY_PREFIX}crypto${SHARED_LIBRARY_SUFFIX}.1.1; then
+        #if test -s $OPENSSL_DIR/${LIBRARY_PREFIX}crypto${SHARED_LIBRARY_SUFFIX}.1.1; then
+        if test -s $OPENSSL_DIR/libcrypto.so.1.1; then
           BUILD_OPENSSL=no
         else
           BUILD_OPENSSL=yes
@@ -509,17 +510,22 @@ AC_DEFUN([CONFIGURE_OPENSSL],
     if test "x$FOUND_OPENSSL" != xyes; then
       # User specified path where openssl is installed
       OPENSSL_DIR=$with_openssl
-      BASIC_FIXUP_PATH(OPENSSL_DIR)
+      # BASIC_FIXUP_PATH(OPENSSL_DIR)
       if test -s "$OPENSSL_DIR/include/openssl/evp.h"; then
         if test "x$OPENJDK_BUILD_OS_ENV" = xwindows.cygwin; then
           # On Windows, check for libcrypto.lib
+          printf "\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n"
           if test -s "$OPENSSL_DIR/lib/libcrypto.lib"; then
             FOUND_OPENSSL=yes
             OPENSSL_CFLAGS="-I${OPENSSL_DIR}/include"
             OPENSSL_LIBS="-libpath:${OPENSSL_DIR}/lib libssl.lib libcrypto.lib"
           fi
         else
-          if test -s "$OPENSSL_DIR/${LIBRARY_PREFIX}crypto${SHARED_LIBRARY_SUFFIX}.1.1"; then
+        printf "\n!!!!!!!!!!!!        $OPENSSL_DIR\n"
+        printf "!!!!!!!!!!!!        $LIBRARY_PREFIX\n"
+        printf "!!!!!!!!!!!!        $SHARED_LIBRARY_SUFFIX\n"
+        #  if test -s "$OPENSSL_DIR/${LIBRARY_PREFIX}crypto${SHARED_LIBRARY_SUFFIX}.1.1"; then
+          if test -s "$OPENSSL_DIR/libcrypto.so.1.1"; then
             FOUND_OPENSSL=yes
             OPENSSL_CFLAGS="-I${OPENSSL_DIR}/include"
             OPENSSL_LIBS="-L${OPENSSL_DIR} -lssl -lcrypto"
