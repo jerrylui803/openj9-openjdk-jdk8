@@ -33,23 +33,30 @@
 
 
 
+
+
+
+
+
+
+
 #include <dlfcn.h>
 
 //handleErrors
-char *             (* ERR_error_string222)           (unsigned long, char *);
-unsigned long      (* ERR_get_error222)              (void);
+char *             (* ERR_error_string222)        (unsigned long, char *);
+unsigned long      (* ERR_get_error222)           (void);
 //sha
-const EVP_MD*      (* EVP_sha1222)                   (void);
-const EVP_MD*      (* EVP_sha256222)                 (void);
-const EVP_MD*      (* EVP_sha224222)                 (void);
-const EVP_MD*      (* EVP_sha384222)                 (void);
-const EVP_MD*      (* EVP_sha512222)                 (void);
-EVP_MD_CTX*        (* EVP_MD_CTX_new222)             (void);
-int                (* EVP_DigestInit_ex222)          (EVP_MD_CTX *, const EVP_MD *, ENGINE *);
-int                (* EVP_MD_CTX_copy_ex222)         (EVP_MD_CTX *, const EVP_MD_CTX *);
-int                (* EVP_DigestUpdate222)           (EVP_MD_CTX *, const void *, size_t);
-int                (* EVP_DigestFinal_ex222)         (EVP_MD_CTX *, unsigned char *, unsigned int *);
-int                (* EVP_MD_CTX_reset222)           (EVP_MD_CTX *);
+const EVP_MD*      (* EVP_sha1222)                (void);
+const EVP_MD*      (* EVP_sha256222)              (void);
+const EVP_MD*      (* EVP_sha224222)              (void);
+const EVP_MD*      (* EVP_sha384222)              (void);
+const EVP_MD*      (* EVP_sha512222)              (void);
+EVP_MD_CTX*        (* EVP_MD_CTX_new222)          (void);
+int                (* EVP_DigestInit_ex222)       (EVP_MD_CTX *, const EVP_MD *, ENGINE *);
+int                (* EVP_MD_CTX_copy_ex222)      (EVP_MD_CTX *, const EVP_MD_CTX *);
+int                (* EVP_DigestUpdate222)        (EVP_MD_CTX *, const void *, size_t);
+int                (* EVP_DigestFinal_ex222)      (EVP_MD_CTX *, unsigned char *, unsigned int *);
+int                (* EVP_MD_CTX_reset222)        (EVP_MD_CTX *);
 //cbc
 void               (* OpenSSL_add_all_algorithms222) (void);
 void               (* ERR_load_crypto_strings222)    (void);
@@ -70,6 +77,16 @@ int                (* EVP_CIPHER_CTX_ctrl222)        (EVP_CIPHER_CTX *, int, int
 int                (* EVP_DecryptInit_ex222)         (EVP_CIPHER_CTX *, const EVP_CIPHER *, ENGINE *, const unsigned char *, const unsigned char *);
 int                (* EVP_DecryptUpdate222)          (EVP_CIPHER_CTX *, unsigned char *, int *, const unsigned char *, int); 
 int                (* EVP_DecryptFinal222)           (EVP_CIPHER_CTX *, unsigned char *, int *); 
+
+
+int                (* tmp_foo123)                       ( int ); 
+
+
+
+
+
+
+
 
 
 
@@ -140,7 +157,10 @@ JNIEXPORT void JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_loadOpenSSL
     // 1.1.0 or 1.1.1
     OpenSSL_version222 = dlsym(handle, "OpenSSL_version");
     if ((error = dlerror()) != NULL)  {
+        fprintf(stderr,"NOT NEW OSSL!!!!!!!!!!!!!!!!!!\n");
         new_ossl = 0;
+    }else{
+        fprintf(stderr,"NEWOSSL!!!!!!!!!!!\n");
     }
 
     // 1.0.2
@@ -168,32 +188,43 @@ JNIEXPORT void JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_loadOpenSSL
     }
 
 
+    fprintf(stderr, "NEW OPENSSL: %d \n", new_ossl);
+    fflush(stderr);
+
+
+
 
     // ---------- Load function for OpenSSL_1.1.1 or 1.1.0 ----------
 
     //handleErrors
-    ERR_error_string222           = dlsym(handle, "ERR_error_string");
-    ERR_get_error222              = dlsym(handle, "ERR_get_error");
+    ERR_error_string222 = dlsym(handle, "ERR_error_string");
+    ERR_get_error222    = dlsym(handle, "ERR_get_error");
 
 
     //this is for 1.1.0 (1.1.1)
     //sha
-    EVP_sha1222                   = dlsym(handle, "EVP_sha1");
-    EVP_sha256222                 = dlsym(handle, "EVP_sha256");
-    EVP_sha224222                 = dlsym(handle, "EVP_sha224");
-    EVP_sha384222                 = dlsym(handle, "EVP_sha384");
-    EVP_sha512222                 = dlsym(handle, "EVP_sha512");
-    if (new_ossl) {
-        EVP_MD_CTX_new222         = dlsym(handle, "EVP_MD_CTX_new");
-        EVP_MD_CTX_reset222       = dlsym(handle, "EVP_MD_CTX_reset");
-    } else { 
-        EVP_MD_CTX_new222         = dlsym(handle, "EVP_MD_CTX_create");
-        EVP_MD_CTX_reset222       = dlsym(handle, "EVP_MD_CTX_cleanup");
-    }
-    EVP_DigestInit_ex222          = dlsym(handle, "EVP_DigestInit_ex");
-    EVP_MD_CTX_copy_ex222         = dlsym(handle, "EVP_MD_CTX_copy_ex");
-    EVP_DigestUpdate222           = dlsym(handle, "EVP_DigestUpdate");
-    EVP_DigestFinal_ex222         = dlsym(handle, "EVP_DigestFinal_ex");
+    EVP_sha1222   = dlsym(handle, "EVP_sha1");
+	if ((error = dlerror()) != NULL)  {
+        fprintf(stderr, "loading fail          evp_sha1!!!!!!!!!!!!!!!!!!\n");
+}
+else{fprintf(stderr, "loading success        evp_sha1!!!!!!!!!!!!!!!!!!\n");
+}
+    EVP_sha256222 = dlsym(handle, "EVP_sha256");
+    EVP_sha224222 = dlsym(handle, "EVP_sha224");
+    EVP_sha384222 = dlsym(handle, "EVP_sha384");
+    EVP_sha512222 = dlsym(handle, "EVP_sha512");
+    if (new_ossl)
+        EVP_MD_CTX_new222 = dlsym(handle, "EVP_MD_CTX_new");
+    else 
+        EVP_MD_CTX_new222 = dlsym(handle, "EVP_MD_CTX_create");
+    EVP_DigestInit_ex222 = dlsym(handle, "EVP_DigestInit_ex");
+    EVP_MD_CTX_copy_ex222 = dlsym(handle, "EVP_MD_CTX_copy_ex");
+    EVP_DigestUpdate222 = dlsym(handle, "EVP_DigestUpdate");
+    EVP_DigestFinal_ex222 = dlsym(handle, "EVP_DigestFinal_ex");
+    if (new_ossl)
+        EVP_MD_CTX_reset222 = dlsym(handle, "EVP_MD_CTX_reset");
+    else
+        EVP_MD_CTX_reset222 = dlsym(handle, "EVP_MD_CTX_cleanup");
 
 
 
@@ -213,13 +244,34 @@ JNIEXPORT void JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_loadOpenSSL
 
 
     //gcm
+
+
     EVP_aes_128_gcm222            = dlsym(handle, "EVP_aes_128_gcm");
     EVP_CIPHER_CTX_ctrl222        = dlsym(handle, "EVP_CIPHER_CTX_ctrl");
     EVP_DecryptInit_ex222         = dlsym(handle, "EVP_DecryptInit_ex");
     EVP_DecryptUpdate222          = dlsym(handle, "EVP_DecryptUpdate");
     EVP_DecryptFinal222           = dlsym(handle, "EVP_DecryptFinal");
 
-    //dlclose(handle);  
+
+	tmp_foo123                    = dlsym(handle, "foo123");
+	
+
+
+    if ((error = dlerror()) != NULL)  {
+        fprintf(stderr, "loading foo fail, only openssl 1.0.2 and 1.1.0 and 1.1.1 are supported\n");
+        fputs(error, stderr);
+        fflush(stderr);
+        exit(1);
+    }
+
+	fprintf(stderr,"111 RESULT FROM EVP_sha1: %d\n", (*EVP_sha1222)())  ;
+
+
+
+	fprintf(stderr,"111 RESULT FROM FOO: %d\n", (*tmp_foo123)(54321))	;
+    fprintf(stderr, "111 address of foo pointer: %p \n", tmp_foo123);
+	fflush(stderr);
+    dlclose(handle);
 
 }
 
@@ -233,6 +285,11 @@ JNIEXPORT void JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_loadOpenSSL
  */
 JNIEXPORT jlong JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestCreateContext
   (JNIEnv *env, jclass thisObj, jlong copyContext, jint algoIdx) {
+	fprintf(stderr, "222 entering DigestCreateContext \n");
+	fprintf(stderr, "222 address of foo pointer: %p \n", tmp_foo123);
+	fflush(stderr);
+	fprintf(stderr,"222 RESULT FROM FOO: %d\n", (*tmp_foo123)(54321))   ;
+	fflush(stderr);
 	
 
     EVP_MD_CTX *ctx;
@@ -241,7 +298,12 @@ JNIEXPORT jlong JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestCreateCon
 
     switch (algoIdx) {
         case 0:
-            digestAlg = (*EVP_sha1222)();
+           // digestAlg = EVP_sha1();
+            digestAlg = EVP_sha1();
+	//		fprintf(stderr,"sha1 address check    %p\n", EVP_sha1222); 
+	//		(*tmp_foo123)(54321);
+	//		fflush (stderr);
+	//		(*EVP_sha1222)();
             break;
         case 1:
             digestAlg = (*EVP_sha256222)();
@@ -259,10 +321,12 @@ JNIEXPORT jlong JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestCreateCon
             assert(0);
     }
 
-    if((ctx = (*EVP_MD_CTX_new222)()) == NULL)
+    if((ctx = EVP_MD_CTX_create()) == NULL)
         handleErrors();
+    fprintf(stderr, "HERE!!!!!!!!!!!!!!!!!!!!!!!!");
+    fflush(stderr);
 
-    if(1 != (*EVP_DigestInit_ex222)(ctx, digestAlg, NULL))
+    if(1 != EVP_DigestInit_ex(ctx, digestAlg, NULL))
         handleErrors();
 
 
@@ -272,7 +336,7 @@ JNIEXPORT jlong JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestCreateCon
 
     if (copyContext != 0) {
         EVP_MD_CTX *contextToCopy = ((OpenSSLMDContext*) copyContext)->ctx;
-        (*EVP_MD_CTX_copy_ex222)(ctx,contextToCopy);
+        EVP_MD_CTX_copy_ex(ctx,contextToCopy);
     }
 
 
@@ -293,14 +357,14 @@ JNIEXPORT jint JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestUpdate
 
     if (message == NULL) {
         // Data passed in through direct byte buffer
-        if (1 != (*EVP_DigestUpdate222)(context->ctx, context->nativeBuffer, messageLen))
+        if (1 != EVP_DigestUpdate(context->ctx, context->nativeBuffer, messageLen))
             handleErrors();
     } else {
         jboolean isCopy;
         unsigned char* messageNative = (*env)->GetPrimitiveArrayCritical(env, message, &isCopy);
         messageNative = messageNative + messageOffset;
 
-        if (1 != (*EVP_DigestUpdate222)(context->ctx, messageNative, messageLen))
+        if (1 != EVP_DigestUpdate(context->ctx, messageNative, messageLen))
             handleErrors();
 
         (*env)->ReleasePrimitiveArrayCritical(env, message,  NULL, 0);
@@ -329,21 +393,21 @@ JNIEXPORT jint JNICALL Java_jdk_crypto_jniprovider_NativeCrypto_DigestComputeAnd
     if (message != NULL) {
        messageNative = (*env)->GetPrimitiveArrayCritical(env, message, &isCopy);
        messageNative = messageNative + messageOffset;
-       if (1 != (*EVP_DigestUpdate222)(context->ctx, messageNative, messageLen)) handleErrors();
+       if (1 != EVP_DigestUpdate(context->ctx, messageNative, messageLen)) handleErrors();
            (*env)->ReleasePrimitiveArrayCritical(env, message, NULL, 0);
     }
 
     digestNative = (*env)->GetPrimitiveArrayCritical(env, digest , &isCopy);
     digestNative = digestNative + digestOffset;
 
-    if (1 != (*EVP_DigestFinal_ex222)(context->ctx, digestNative, &size))
+    if (1 != EVP_DigestFinal_ex(context->ctx, digestNative, &size))
         handleErrors();
 
     (*env)->ReleasePrimitiveArrayCritical(env, digest,  NULL, 0);
 
-    (*EVP_MD_CTX_reset222)(context->ctx);
+    EVP_MD_CTX_cleanup(context->ctx);
 
-    if (1 != (*EVP_DigestInit_ex222)(context->ctx, context->digestAlg, NULL))
+    if (1 != EVP_DigestInit_ex(context->ctx, context->digestAlg, NULL))
         handleErrors();
 
     return size;

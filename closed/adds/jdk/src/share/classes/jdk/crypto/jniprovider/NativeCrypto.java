@@ -32,8 +32,11 @@ public class NativeCrypto {
             public Void run() {
                 try {
                     System.loadLibrary("jncrypto"); // check for native library
+                    loadOpenSSL();
                     loaded = true;
                 } catch (UnsatisfiedLinkError usle) {
+                    System.err.println("loading Openssl FAIL!!!!!!!!!!!!!!!");
+                    System.err.println(usle);
                     loaded = false;
                 }
                 return null;
@@ -45,6 +48,8 @@ public class NativeCrypto {
     public static final boolean isLoaded() {
         return loaded;
     }
+
+    public static final native void loadOpenSSL();
 
     /* Native digest interfaces */
     public static final native long DigestCreateContext(long nativeBuffer,
